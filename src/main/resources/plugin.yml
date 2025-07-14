@@ -1,0 +1,10 @@
+name: CorruptionTag
+version: '1.0-SNAPSHOT'
+main: carnage.corruptionTag.CorruptionTag
+api-version: '1.21'
+
+commands:
+  corruptiontag:
+    description: Main Corruption Tag command
+    usage: /corruptiontag <create|start|join|status|endgame>
+    aliases: [ct]
