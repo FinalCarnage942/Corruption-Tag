@@ -8,6 +8,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class CorruptionCommand implements CommandExecutor {
 
@@ -81,7 +84,29 @@ public class CorruptionCommand implements CommandExecutor {
             return;
         }
 
-        gameManager.startGame(player);
+        // Open the map selection GUI
+        openMapSelectionGUI(player);
+    }
+
+    private void openMapSelectionGUI(Player player) {
+        Inventory gui = Bukkit.createInventory(null, 9, "Select a Map");
+
+        // Add map selection items to the GUI
+        gui.addItem(createMapSelectionItem("Map 1"));
+        gui.addItem(createMapSelectionItem("Map 2"));
+        gui.addItem(createMapSelectionItem("Map 3"));
+        gui.addItem(createMapSelectionItem("Map 4"));
+
+        player.openInventory(gui);
+    }
+
+    private ItemStack createMapSelectionItem(String mapName) {
+        // Create an item stack representing the map
+        ItemStack item = new ItemStack(org.bukkit.Material.MAP);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(mapName);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private void handleJoinCommand(Player player, String[] args) {

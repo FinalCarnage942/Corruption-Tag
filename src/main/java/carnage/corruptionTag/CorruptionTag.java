@@ -4,6 +4,7 @@ import carnage.corruptionTag.commands.CorruptionCommand;
 import carnage.corruptionTag.commands.CorruptionTabCompleter;
 import carnage.corruptionTag.listeners.CorruptionListener;
 import carnage.corruptionTag.listeners.GameListener;
+import carnage.corruptionTag.listeners.MapSelectionListener;
 import carnage.corruptionTag.managers.GameManager;
 import carnage.corruptionTag.managers.GlowManager;
 import org.bukkit.entity.Player;
@@ -29,6 +30,7 @@ public final class CorruptionTag extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new CorruptionListener(), this);
         getServer().getPluginManager().registerEvents(new GameListener(gameManager), this);
+        getServer().getPluginManager().registerEvents(new MapSelectionListener(gameManager), this);
 
         getCommand("corruptiontag").setExecutor(command);
         getCommand("ct").setExecutor(command);

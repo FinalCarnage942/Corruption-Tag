@@ -8,15 +8,14 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.logging.Level;
 
 public class GameManager {
-
     public static final int MAX_PLAYERS = 5;
     private final Map<UUID, Set<UUID>> games = new HashMap<>();
     private final Map<UUID, World> activeGameWorlds = new HashMap<>();
@@ -51,6 +50,10 @@ public class GameManager {
     }
 
     public void startGame(Player host) {
+        startGame(host, "map1"); // Default map name
+    }
+
+    public void startGame(Player host, String mapName) {
         Set<UUID> uuids = games.get(host.getUniqueId());
         if (uuids == null || uuids.isEmpty()) return;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss");
@@ -60,8 +63,13 @@ public class GameManager {
         activeGameWorlds.put(host.getUniqueId(), gameWorld);
         gameWorld.setGameRule(GameRule.NATURAL_REGENERATION, false);
         gameWorld.setDifficulty(Difficulty.PEACEFUL);
-        WorldManager.buildStonePlatform(gameWorld, 0, 64, 0);
-        Location spawn = new Location(gameWorld, 0.5, 65, 0.5);
+        Location spawn;
+        try {
+            spawn = WorldManager.pasteSchematic(gameWorld, mapName + ".schem");
+        } catch (IOException e) {
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to paste schematic", e);
+            return;
+        }
         List<Player> players = new ArrayList<>();
         for (UUID u : uuids) {
             Player p = Bukkit.getPlayer(u);
@@ -73,7 +81,6 @@ public class GameManager {
                 p.sendMessage(Component.text("The game has started!", TextColor.color(0xFF55FF)));
                 players.add(p);
                 corruptionLevels.put(u, 0);
-                hitsLeft.put(u, 4); // Initialize hits left
                 spawnPoints.put(u, spawn);
             }
         }

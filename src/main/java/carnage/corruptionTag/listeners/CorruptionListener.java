@@ -1,42 +1,46 @@
 package carnage.corruptionTag.listeners;
-
 import carnage.corruptionTag.CorruptionTag;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-
 public class CorruptionListener implements Listener {
-
     @EventHandler
     public void onPlayerHit(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player damager) || !(event.getEntity() instanceof Player target)) {
             return;
         }
-
         boolean damagerIsCorrupted = damager.isGlowing();
         boolean targetIsCorrupted = target.isGlowing();
-
-        event.setCancelled(true);
-
         if (damagerIsCorrupted && !targetIsCorrupted) {
-            CorruptionTag.getInstance().getGameManager().reduceHitsLeft(target);
-            damager.sendActionBar(Component.text("You hit a non-corrupted player!", TextColor.color(0xAA00AA)));
-            target.sendActionBar(Component.text("You've been hit by a corrupted player!", TextColor.color(0xFF5555)));
+            // Corrupted hits non-corrupted
+            event.setDamage(0);
+            double newHealth = target.getHealth() - 2.0;
+            if (newHealth <= 0) {
+                CorruptionTag.getInstance().getGameManager().handlePlayerCorrupted(target);
+            } else {
+                target.setHealth(newHealth);
+                damager.sendActionBar(Component.text("You hit a non-corrupted player!", NamedTextColor.DARK_PURPLE));
+                target.sendActionBar(Component.text("You've been hit by a corrupted player!", NamedTextColor.RED));
+            }
         } else if (!damagerIsCorrupted && targetIsCorrupted) {
-            double newHealth = Math.max(0, target.getHealth() - 1.0);
-            target.setHealth(newHealth);
-            damager.sendActionBar(Component.text("You hit the corrupted player!", TextColor.color(0x00AA00)));
-            target.sendActionBar(Component.text("You've been hit by a non-corrupted player!", TextColor.color(0x00AA00)));
-        } else if (damagerIsCorrupted && targetIsCorrupted) {
-            double newHealth = Math.max(0, target.getHealth() - 1.0);
-            target.setHealth(newHealth);
-            damager.sendActionBar(Component.text("You hit another corrupted player!", TextColor.color(0x00AA00)));
-            target.sendActionBar(Component.text("You've been hit by a corrupted player!", TextColor.color(0x00AA00)));
+            // Non-corrupted hits corrupted
+            event.setDamage(0);
+            double newHealth = target.getHealth() - 1.0;
+            if (newHealth <= 0) {
+                target.setHealth(1.0); // Keep them alive
+                damager.sendActionBar(Component.text("Corrupted cannot die this way!", NamedTextColor.GRAY));
+            } else {
+                target.setHealth(newHealth);  // Apply damage correctly to the corrupted
+                damager.sendActionBar(Component.text("You hit the corrupted player!", NamedTextColor.DARK_GREEN));
+                target.sendActionBar(Component.text("You've been hit by a non-corrupted player!", NamedTextColor.DARK_GREEN));
+            }
         } else {
-            damager.sendActionBar(Component.text("You cannot hit this player!", TextColor.color(0xAAAAAA)));
+            // Both are same corruption state
+            event.setCancelled(true);
+            damager.sendActionBar(Component.text("You cannot hit this player!", NamedTextColor.GRAY));
         }
     }
 }
